@@ -1,0 +1,143 @@
+---
+title: "Exploración de datos Ligas de Futbol Europeas"
+author: "Jorge Oduber"
+date: "2023-11-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(DataExplorer)
+library(readxl)
+```
+
+
+
+```{r}
+bd <- read_xlsx("C:\\Users\\USUARIO\\OneDrive\\Escritorio\\Portfolio\\Exploracion de datos\\Ligas_europeas_futbol.xlsx")
+```
+
+```{r}
+#Primeras filas
+head(bd)
+```
+
+```{r}
+#últimas filas
+tail(bd)
+```
+
+
+```{r}
+#Visualización de estructura de BD
+plot_str(bd)
+```
+
+```{r}
+#Visualización de uso de memoria de BD
+plot_intro(bd)
+```
+
+```{r}
+#Exploración de datos faltantes
+plot_missing(bd)
+```
+
+```{r}
+#Gráficos de barras de variables cualitativas o factores
+plot_bar(bd)
+```
+
+```{r}
+#Función de densidad para las variables cuantitativas
+plot_density(bd$home_team_goal,scale_x = "log10")
+plot_density(bd$away_team_goal,scale_x = "log10")
+```
+
+```{r}
+#Histogramas
+plot_histogram(bd$home_team_goal,scale_x = "log10")
+plot_histogram(bd$away_team_goal,scale_x = "log10")
+```
+
+```{r}
+#Análisis tradicional
+summary(bd)
+```
+
+```{r}
+#Tabla de frecuencias
+table(bd$home_team_goal)
+table(bd$away_team_goal)
+```
+
+```{r}
+#Gráfico de barras
+barplot(table(bd$home_team_goal))
+barplot(table(bd$away_team_goal))
+```
+
+```{r}
+#Gráfico de caja
+boxplot(bd$home_team_goal)
+boxplot(bd$away_team_goal)
+```
+
+```{r}
+#Número de goles por Liga como local  y visitante con gráfico de caja
+boxplot(bd$home_team_goal ~ bd$name)
+boxplot(bd$away_team_goal ~ bd$name)
+```
+
+```{r}
+#Prueba T para verificar si hay diferencia entre las medias de goles como local y visitante
+t.test(bd$home_team_goal,bd$away_team_goal)
+```
+
+```{r}
+#Análisis de varianza
+anova(aov(bd$home_team_goal ~ bd$away_team_goal))
+```
+
+```{r}
+#Tabla de némero de goles por liga
+table(bd$name1,bd$home_team_goal)
+table(bd$name1,bd$away_team_goal)
+```
+
+```{r}
+plot(bd$home_team_goal,bd$away_team_goal)
+```
+
+```{r}
+
+# Convertir la variable "resultado" en categórica
+bd$resultado_cat <- ifelse(bd$home_team_goal > bd$away_team_goal, "ganado", ifelse(bd$home_team_goal < bd$away_team_goal, "perdido", "empatado"))
+
+# Convertir la variable categórica en factor
+bd$resultado_cat <- factor(bd$resultado_cat)
+
+# Ajustar un modelo de regresión logística con la variable categórica
+modelo <- glm(resultado_cat ~ home_team_goal + away_team_goal, data = bd, family = binomial(link = "logit"))
+
+# Obtener un resumen del modelo
+summary(modelo)
+
+```
+
+```{r}
+# Cargar la biblioteca ggplot2
+library(ggplot2)
+
+# Crear un gráfico de dispersión con la curva de ajuste del modelo superpuesta
+ggplot(bd, aes(x = home_team_goal, y = resultado_cat)) +
+  geom_jitter(aes(color = resultado_cat), width = 0.2) +
+  stat_smooth(method = "glm", method.args = list(family = "binomial"), se = FALSE) +
+  labs(title = "Relación entre el número de goles del equipo local y el resultado del partido",
+       x = "Goles del equipo local",
+       y = "Resultado del partido")
+
+```
+
